@@ -22,6 +22,8 @@ export default function App() {
   const [carKind, setCarKind] = useState<CarKind>('Thar-style 4x4');
   const [paint, setPaint] = useState(colors[0]);
   const [road, setRoad] = useState<Road>('Village');
+  const [weather, setWeather] = useState<'Clear' | 'Rain' | 'Fog'>('Clear');
+  const [timeOfDay, setTimeOfDay] = useState<'Day' | 'Night'>('Day');
   const [led, setLed] = useState(true);
   const [headlights, setHeadlights] = useState(true);
   const [hazard, setHazard] = useState(false);
@@ -62,10 +64,9 @@ export default function App() {
         );
         if (!active || !mount.current) return;
         scene = new THREE.Scene();
-        scene.background = new THREE.Color(
-          road === 'City' ? 0x9bc8e8 : 0x8dc5ec
-        );
-        scene.fog = new THREE.Fog(scene.background, 65, 260);
+        const skyColor = timeOfDay === 'Night' ? 0x101a30 : weather === 'Fog' ? 0xbac5c8 : road === 'City' ? 0x9bc8e8 : 0x8dc5ec;
+        scene.background = new THREE.Color(skyColor);
+        scene.fog = new THREE.Fog(scene.background, weather === 'Fog' ? 18 : 65, weather === 'Fog' ? 115 : 260);
         camera = new THREE.PerspectiveCamera(
           62,
           innerWidth / innerHeight,
@@ -82,10 +83,11 @@ export default function App() {
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         mount.current.replaceChildren(renderer.domElement);
         scene.add(new THREE.HemisphereLight(0xd7e3ec, 0x45483f, 1.45));
-        const sun = new THREE.DirectionalLight(0xfff3df, 3.1);
+        const sun = new THREE.DirectionalLight(timeOfDay === 'Night' ? 0x9bbcff : 0xfff3df, timeOfDay === 'Night' ? 0.55 : 3.1);
         sun.position.set(-18, 35, 16);
         sun.castShadow = true;
         scene.add(sun);
+        if (timeOfDay === 'Night') scene.add(new THREE.AmbientLight(0x52688f, 0.65));
         const mat = (c: number | string, r = 0.5, m = 0) =>
           new THREE.MeshStandardMaterial({
             color: c,
@@ -518,8 +520,8 @@ export default function App() {
         renderer.domElement.remove();
       }
     };
-    // rebuild scene when vehicle/environment changes
-  }, [carKind, road]);
+    // Rebuild for vehicle, road, weather and lighting selections.
+  }, [carKind, road, weather, timeOfDay]);
 
   useEffect(() => {
     const g = gameRef.current;
@@ -652,6 +654,14 @@ export default function App() {
           <option>Fortuner-style SUV</option>
           <option>BMW-style Coupe</option>
           <option>Mercedes-style Sedan</option>
+        </select>
+        <label>Weather</label>
+        <select value={weather} onChange={e => setWeather(e.target.value as 'Clear' | 'Rain' | 'Fog')}>
+          <option value="Clear">Clear weather</option><option value="Rain">Rainy mood</option><option value="Fog">Foggy road</option>
+        </select>
+        <label>Time of day</label>
+        <select value={timeOfDay} onChange={e => setTimeOfDay(e.target.value as 'Day' | 'Night')}>
+          <option value="Day">Day</option><option value="Night">Night</option>
         </select>
         <label>Indian road</label>
         <select value={road} onChange={e => setRoad(e.target.value as Road)}>
