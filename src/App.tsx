@@ -128,6 +128,7 @@ export default function App() {
         roadMesh.position.set(0, -0.09, -300);
         scene.add(roadMesh);
         const moving: any[] = [];
+        const rainDrops: any[] = [];
         // Road shoulders, lane reflectors and roadside barriers add depth to the driving scene.
         for (const side of [-1, 1]) {
           const shoulder = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 800), mat(road === 'Highway' ? 0x8a8b82 : 0x7b8569));
@@ -398,16 +399,14 @@ export default function App() {
           car.add(beam, beam.target);
           (car.userData.beams ??= []).push(beam);
         }
-        for (const side of [-1, 1])
-          box(
-            car,
-            0.4,
-            0.14,            0.06,
-            mat(0xff2222),
-            side * 0.7,
-            0.78,
-            -length / 2
-          );
+        for (const side of [-1, 1]) {
+          box(car, 0.4, 0.14, 0.06, mat(0xff2222), side * 0.7, 0.78, -length / 2);
+          const indicator = box(car, 0.16, 0.12, 0.08, mat(0xffa21b, 0.25), side * (width * 0.42), 0.79, length * 0.505);
+          indicator.material.emissive = new THREE.Color(0xff7800);
+          indicator.material.emissiveIntensity = 1.8;
+          indicator.userData.indicator = true;
+          indicator.visible = false;
+        }
         const ledMat = new THREE.MeshStandardMaterial({
           color: 0x00eaff,
           emissive: 0x00eaff,
@@ -432,6 +431,17 @@ export default function App() {
         car.userData.under = under;
         car.userData.doors = doorPivots;
         car.userData.glass = glass;
+        // Rain particles: lightweight 3D streaks that move toward the road and recycle.
+        if (weather === 'Rain') {
+          const rainMat = new THREE.MeshBasicMaterial({ color: 0xd9efff, transparent: true, opacity: 0.48 });
+          for (let i = 0; i < 420; i++) {
+            const drop = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.22, 0.012), rainMat);
+            drop.position.set((Math.random() - 0.5) * 34, 2 + Math.random() * 16, 15 - Math.random() * 180);
+            drop.userData.rain = true;
+            scene.add(drop);
+            rainDrops.push(drop);
+          }
+        }
         car.position.set(0, 0, 5);
         car.rotation.y = Math.PI;
         gameRef.current = {
@@ -471,6 +481,20 @@ export default function App() {
             5.3
           );
           const flow = s * dt * 1.8;
+          rainDrops.forEach((drop: any) => {
+            drop.position.y -= dt * 17;
+            drop.position.z += dt * (4 + s * 0.15);
+            if (drop.position.y < 0.1 || drop.position.z > 12) {
+              drop.position.y = 8 + Math.random() * 10;
+              drop.position.z = -120 - Math.random() * 60;
+              drop.position.x = (Math.random() - 0.5) * 34;
+            }
+          });
+          // Hazard/indicator lamps blink visibly while enabled.
+          const blinkOn = Math.floor(now / 420) % 2 === 0;
+          car.children.forEach((part: any) => {
+            if (part.userData?.indicator) part.visible = hazard ? blinkOn : false;
+          });
           moving.forEach((o: any) => {
             o.position.z += flow * (o.userData.traffic ? 0.42 : 1);
             if (o.position.z > 18) {
@@ -483,8 +507,9 @@ export default function App() {
             p = new THREE.Vector3(car.position.x, 4.2, car.position.z + 8.6);
             l = new THREE.Vector3(car.position.x, 1, -14);
           } else if (cameraMode === 1) {
-            p = new THREE.Vector3(car.position.x, 1.75, car.position.z + 1.15);
-            l = new THREE.Vector3(car.position.x, 1.3, car.position.z - 15);
+            // Driver-eye camera inside the cabin, looking through the windshield.
+            p = new THREE.Vector3(car.position.x - 0.42, 1.42, car.position.z + 0.18);
+            l = new THREE.Vector3(car.position.x - 0.42, 1.35, car.position.z - 18);
           } else {
             p = new THREE.Vector3(car.position.x, 10, car.position.z + 11);
             l = new THREE.Vector3(car.position.x, 0, car.position.z - 10);
