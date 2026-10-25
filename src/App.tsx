@@ -606,6 +606,16 @@ export default function App() {
       o.onended = () => void c.close();
     } catch {}    say('HONK!');
   };
+  const enterLandscape = async () => {
+    try {
+      if (!document.fullscreenElement) await document.documentElement.requestFullscreen();
+      const orientation = screen.orientation as ScreenOrientation & { lock?: (orientation: string) => Promise<void> };
+      if (orientation.lock) await orientation.lock('landscape');
+      say('Landscape mode enabled');
+    } catch {
+      say('Phone ko landscape mein rotate karein');
+    }
+  };
   const switchCamera = () => {
     setCameraMode(v => (v + 1) % 3);
     say(
@@ -627,6 +637,7 @@ export default function App() {
           <small>KM/H</small>
         </div>
         <div className="roadtag">🇮🇳 {road.toUpperCase()}</div>
+        <button className="landscape-button" onClick={enterLandscape}>⛶ LANDSCAPE</button>
       </header>
       <aside className="garage">
         <h2>🚘 GARAGE</h2>
