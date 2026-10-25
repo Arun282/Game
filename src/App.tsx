@@ -504,9 +504,19 @@ export default function App() {
             '<div class="fallback">3D scene needs an internet connection and a modern browser. Reload to retry.</div>';
       }
     };
+    const onResize = () => {
+      if (!renderer || !mount.current || !camera) return;
+      const width = mount.current.clientWidth;
+      const height = mount.current.clientHeight;
+      camera.aspect = width / Math.max(1, height);
+      camera.updateProjectionMatrix();
+      renderer.setSize(width, height);
+    };
+    window.addEventListener('resize', onResize);
     start();
     return () => {
       active = false;
+      window.removeEventListener('resize', onResize);
       cancelAnimationFrame(frame);
       if (renderer) {
         renderer.dispose();
