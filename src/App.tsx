@@ -32,6 +32,9 @@ export default function App() {
   const [music, setMusic] = useState(false);
   const [nitro, setNitro] = useState(false);
   const [cameraMode, setCameraMode] = useState(0);
+  const cameraModeRef = useRef(0);
+  const hazardRef = useRef(false);
+  const nitroRef = useRef(false);
   const [speed, setSpeed] = useState(0);
   const [toast, setToast] = useState('Welcome to Indian roads');
   const held = useRef({ left: false, right: false, gas: false, brake: false });
@@ -464,7 +467,7 @@ export default function App() {
           last = now;
           const k = held.current;
           let s = gameRef.current?.speed || 0;
-          if (k.gas) s = Math.min(nitro ? 55 : 38, s + (nitro ? 23 : 15) * dt);
+          if (k.gas) s = Math.min(nitroRef.current ? 55 : 38, s + (nitroRef.current ? 23 : 15) * dt);
           else s = Math.max(0, s - 2.1 * dt);
           if (k.brake) s = Math.max(0, s - 25 * dt);
           gameRef.current.speed = s;
@@ -493,7 +496,7 @@ export default function App() {
           // Hazard/indicator lamps blink visibly while enabled.
           const blinkOn = Math.floor(now / 420) % 2 === 0;
           car.children.forEach((part: any) => {
-            if (part.userData?.indicator) part.visible = hazard ? blinkOn : false;
+            if (part.userData?.indicator) part.visible = hazardRef.current ? blinkOn : false;
           });
           moving.forEach((o: any) => {
             o.position.z += flow * (o.userData.traffic ? 0.42 : 1);
@@ -503,10 +506,10 @@ export default function App() {
             }
           });
           let p: any, l: any;
-          if (cameraMode === 0) {
+          if (cameraModeRef.current === 0) {
             p = new THREE.Vector3(car.position.x, 4.2, car.position.z + 8.6);
             l = new THREE.Vector3(car.position.x, 1, -14);
-          } else if (cameraMode === 1) {
+          } else if (cameraModeRef.current === 1) {
             // Driver-eye camera inside the cabin, looking through the windshield.
             p = new THREE.Vector3(car.position.x - 0.42, 1.42, car.position.z + 0.18);
             l = new THREE.Vector3(car.position.x - 0.42, 1.35, car.position.z - 18);
@@ -547,6 +550,10 @@ export default function App() {
     };
     // Rebuild for vehicle, road, weather and lighting selections.
   }, [carKind, road, weather, timeOfDay]);
+
+  useEffect(() => { cameraModeRef.current = cameraMode; }, [cameraMode]);
+  useEffect(() => { hazardRef.current = hazard; }, [hazard]);
+  useEffect(() => { nitroRef.current = nitro; }, [nitro]);
 
   useEffect(() => {
     const g = gameRef.current;
