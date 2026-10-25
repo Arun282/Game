@@ -74,6 +74,17 @@ body,
 .roadtag {
   font-size: 11px;
 }
+.landscape-button {
+  pointer-events: auto;
+  border: 1px solid #6de7f4;
+  background: #07111be8;
+  color: #eafcff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font: 700 10px Inter, system-ui, sans-serif;
+  white-space: nowrap;
+  touch-action: manipulation;
+}
 .garage {
   position: absolute;
   right: 12px;
@@ -250,4 +261,27 @@ body,
     min-width: 58px;
     min-height: 65px;
   }
+}
+
+@media (orientation: landscape) and (max-height: 600px) {
+  .hud { top: 6px; left: 8px; right: 8px; gap: 6px; }
+  .brand, .speedbox, .roadtag { padding: 5px 8px; border-radius: 9px; }
+  .brand { font-size: 10px; }
+  .brand span { font-size: 7px; }
+  .speedbox b { font-size: 17px; }
+  .garage { top: 52px; right: 8px; width: min(245px, 32vw); max-height: calc(100% - 112px); padding: 8px; }
+  .garage h2 { font-size: 12px; margin-bottom: 5px; }
+  .garage label { margin: 5px 0 3px; font-size: 9px; }
+  .garage select { padding: 6px; font-size: 10px; }
+  .swatch { width: 20px; height: 20px; min-width: 20px; }
+  .actions { gap: 4px; margin-top: 5px; }
+  .actions button { padding: 6px 3px; font-size: 9px; }
+  .note { margin-top: 5px; font-size: 8px; }
+  .driving-controls { left: 8px; right: 8px; bottom: 7px; }
+  .driving-controls button { min-width: 54px; min-height: 48px; }
+  .pedals button { min-width: 66px; min-height: 50px; }
+  .toast { top: 48px; font-size: 10px; }
+}
+@media (max-width: 600px) and (orientation: portrait) {
+  .landscape-button { font-size: 9px; padding: 7px 8px; }
 }
