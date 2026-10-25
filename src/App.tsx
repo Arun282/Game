@@ -60,6 +60,9 @@ export default function App() {
         THREE = await import(
           /* @vite-ignore */ 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js'
         );
+        const { RoundedBoxGeometry } = await import(
+          /* @vite-ignore */ 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/RoundedBoxGeometry.js'
+        );
         if (!active || !mount.current) return;
         scene = new THREE.Scene();
         scene.background = new THREE.Color(
@@ -75,11 +78,14 @@ export default function App() {
         renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
         renderer.setPixelRatio(Math.min(devicePixelRatio, 1.6));
         renderer.setSize(mount.current.clientWidth, mount.current.clientHeight);
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.08;
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         mount.current.replaceChildren(renderer.domElement);
-        scene.add(new THREE.HemisphereLight(0xdaf2ff, 0x3b4b30, 2));
-        const sun = new THREE.DirectionalLight(0xfff0d6, 2.8);
+        scene.add(new THREE.HemisphereLight(0xd7e3ec, 0x45483f, 1.45));
+        const sun = new THREE.DirectionalLight(0xfff3df, 3.1);
         sun.position.set(-18, 35, 16);
         sun.castShadow = true;
         scene.add(sun);
@@ -99,7 +105,10 @@ export default function App() {
           y: number,
           z: number
         ) => {
-          const o = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
+          const geometry = parent === car
+            ? new RoundedBoxGeometry(w, h, d, 3, Math.min(0.12, Math.min(w, h, d) * 0.22))
+            : new THREE.BoxGeometry(w, h, d);
+          const o = new THREE.Mesh(geometry, material);
           o.position.set(x, y, z);
           o.castShadow = true;
           o.receiveShadow = true;
@@ -108,7 +117,7 @@ export default function App() {
         };
         const ground = new THREE.Mesh(
           new THREE.PlaneGeometry(1000, 1000),
-          mat(road === 'City' ? 0x6b7479 : 0x4d8b4c)
+          mat(road === 'City' ? 0x626a6e : 0x596b50, 0.96)
         );
         ground.rotation.x = -Math.PI / 2;
         ground.position.y = -0.13;
@@ -116,7 +125,7 @@ export default function App() {
         scene.add(ground);
         const roadMesh = new THREE.Mesh(
           new THREE.PlaneGeometry(road === 'Highway' ? 19 : 14, 800),
-          mat(0x30343a, 0.92)
+          mat(0x292d31, 0.98)
         );
         roadMesh.rotation.x = -Math.PI / 2;
         roadMesh.position.set(0, -0.09, -300);
@@ -170,7 +179,7 @@ export default function App() {
                 2 + Math.random() * 3,
                 height,
                 2 + Math.random() * 2,
-                mat([0x9cabb8, 0xb8b0a4, 0x7d8d9a][i % 3]),
+                mat([0x929b9e, 0xa49f94, 0x777f84][i % 3], 0.88),
                 x,
                 height / 2,
                 z
@@ -185,8 +194,8 @@ export default function App() {
               trunk.userData.flow = true;
               moving.push(trunk);
               const crown = new THREE.Mesh(
-                new THREE.SphereGeometry(1.2, 9, 7),
-                mat(i % 2 ? 0x27743d : 0x38894a)
+                new THREE.SphereGeometry(1.2, 18, 14),
+                mat(i % 2 ? 0x3b6240 : 0x4c7047, 0.94)
               );
               crown.position.set(x, 3, z);
               crown.userData.flow = true;
