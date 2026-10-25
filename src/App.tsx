@@ -60,9 +60,6 @@ export default function App() {
         THREE = await import(
           /* @vite-ignore */ 'https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js'
         );
-        const { RoundedBoxGeometry } = await import(
-          /* @vite-ignore */ 'https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/geometries/RoundedBoxGeometry.js'
-        );
         if (!active || !mount.current) return;
         scene = new THREE.Scene();
         scene.background = new THREE.Color(
@@ -105,9 +102,7 @@ export default function App() {
           y: number,
           z: number
         ) => {
-          const geometry = parent === car
-            ? new RoundedBoxGeometry(w, h, d, 3, Math.min(0.12, Math.min(w, h, d) * 0.22))
-            : new THREE.BoxGeometry(w, h, d);
+          const geometry = new THREE.BoxGeometry(w, h, d);
           const o = new THREE.Mesh(geometry, material);
           o.position.set(x, y, z);
           o.castShadow = true;
